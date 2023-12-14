@@ -72,6 +72,7 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         { from: 'public', to: '.' },
+        { from: 'functions', to: 'functions' },
         { from: 'spectral*.yml', to: '.' },
         { from: 'spectral*.doc.html', to: '.' },
       ],
@@ -89,6 +90,14 @@ module.exports = {
 
     new MonacoWebpackPlugin({
       languages: ['yaml'],
+        customLanguages: [{
+          label: 'yaml',
+          entry: ['monaco-yaml', 'vs/basic-languages/yaml/yaml.contribution'],
+          worker: {
+            id: 'vs/language/yaml/yamlWorker',
+            entry: 'monaco-yaml/yaml.worker.js'
+          }
+        }]
     }),
   ],
   resolve: {

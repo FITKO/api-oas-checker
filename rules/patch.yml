@@ -19,7 +19,8 @@ rules:
               content:
                 application/json-patch+json:
                   schema:
-                    type: object
+                    type: array
+                    ...
                   example: [{ "op": "add", "path": "/baz", "value": "qux" }]
       ```
     message: >-
@@ -49,9 +50,9 @@ rules:
 
       ```
       PATCH /user/123
-      Content-Type: application/json-patch
+      Content-Type: application/json-patch+json
 
-      {"op": "replace", "path": "enable", "value": true}
+      [{"op": "replace", "path": "enable", "value": true}]
       ```
 
       or  POST request with the semantic implied by the target url:
@@ -68,7 +69,7 @@ rules:
       PATCH /user/123/enable
       ````
     message: >-
-      PATCH requires a non empty requestBody.
+      PATCH requires a non empty requestBody and requestBody.required set to true.
     severity: error
     given: >-
       $.paths.*.patch
@@ -77,17 +78,33 @@ rules:
       function: defined
     - field: requestBody.required
       function: truthy
-  request-GET-no-body:
+  patch-json-patch-mediatype:
     description: |-
-      A `GET` request MUST NOT accept a `requestBody`
-      because this behavior is not interoperable.
-      Moreover intermediaries such as reverse proxies
-      are allowed to strip the content from `GET` requests.
+      A correct example of PATCH using eg. `application/json-patch+json` media-type
+      defined in RFC6902.
 
-      See RFC7231 for further information.
+      ```
+      paths:
+        /books/{book_id}:
+          patch:
+            requestBody:
+              content:
+                application/json-patch+json:
+                  schema:
+                    type: array
+                    ...
+                  example: [{ "op": "add", "path": "/baz", "value": "qux" }]
+      ```
     message: >-
-      A GET request MUST NOT accept a requestBody: {{error}}.
-    severity: error
-    given: $.paths..get.requestBody
+      application/json-patch+json is not an array. {{path}}
+    formats:
+    - oas3
+    severity: warn
+    recommended: true
+    given: >-
+      $..[patch][requestBody][content][application/json-patch+json][schema]
     then:
-      function: undefined
+      field: type
+      function: pattern
+      functionOptions:
+        match: array

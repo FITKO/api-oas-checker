@@ -4,7 +4,8 @@ import { LoadFromUrlButton } from './LoadFromUrlButton.js';
 import { UploadFileButton } from './UploadFileButton.js';
 import { ExportResultsButton } from './ExportResultsButton.js';
 import { SaveFileButton } from './SaveFileButton.js';
-import { LoadTemplateButton } from './LoadTemplateButton.js';
+import { LoadTestfileButton } from './LoadTestfileButton.js';
+import { ShowButton } from './ShowButton.js';
 
 const useStyles = createUseStyles({
   buttonContainer: {
@@ -34,6 +35,9 @@ export const Menu = () => {
         <div className={classes.buttonContainer}>
           <ExportResultsButton />
         </div>
+        <div className={classes.buttonContainer}>
+          <ShowButton />
+        </div>
       </section>
       <section className="border-top">
         <div className={classes.buttonContainer}>
@@ -43,7 +47,7 @@ export const Menu = () => {
           <LoadFromUrlButton />
         </div>
         <div className={classes.buttonContainer}>
-          <LoadTemplateButton />
+          <LoadTestfileButton />
         </div>
       </section>
     </>

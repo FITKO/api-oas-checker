@@ -2,10 +2,10 @@ import React, { useCallback, useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import cx from 'classnames';
 import DOMPurify from 'dompurify';
-import marked from 'marked';
+import { marked } from 'marked';
 import { useDispatch } from 'react-redux';
 import { Button, Icon, Modal, ModalBody, ModalFooter, ModalHeader } from 'design-react-kit';
-import { ERROR, WARNING, autoLinkRFC } from '../utils.mjs';
+import { ERROR, WARNING, INFO, HINT, autoLinkRFC } from '../utils.mjs';
 import { focusDocumentLine } from '../redux/actions.js';
 import {
   getValidationResultItemPropTypes,
@@ -22,6 +22,26 @@ const type = {
   display: 'inline-block',
 };
 
+const getValidationResultTypeStyle = (resultItem) => {
+  const hoverMap = {
+    error: {
+      borderColor: 'var(--danger)',
+      backgroundColor: 'var(--danger-hover)',
+    },
+    warning: {
+      borderColor: 'var(--warning)',
+      backgroundColor: 'var(--warning-hover)',
+    },
+    info: {
+      borderColor: 'var(--info)',
+    },
+    hint: {
+      borderColor: 'var(--light)',
+    },
+  };
+  const style = hoverMap[getValidationResultType(resultItem.severity)];
+  return style || {};
+};
 const useStyle = createUseStyles({
   resultItem: {
     composes: 'row py-2 no-gutters',
@@ -29,10 +49,8 @@ const useStyle = createUseStyles({
     borderRight: '8px solid var(--white)',
     backgroundColor: 'var(--white)',
     '&:hover': {
-      borderColor: (resultItem) =>
-        getValidationResultType(resultItem.severity) === ERROR ? 'var(--danger)' : 'var(--warning)',
-      backgroundColor: (resultItem) =>
-        getValidationResultType(resultItem.severity) === WARNING ? 'var(--warning-hover)' : 'var(--danger-hover)',
+      borderColor: (resultItem) => getValidationResultTypeStyle(resultItem).borderColor,
+      backgroundColor: (resultItem) => getValidationResultTypeStyle(resultItem).backgroundColor,
     },
     '&:hover $warning': {
       border: '0px',
@@ -57,6 +75,15 @@ const useStyle = createUseStyles({
   info: {
     composes: 'icon icon-primary',
     width: '20px',
+  },
+  hint: {
+    extend: type,
+    border: '1px solid var(--text-dark)',
+    backgroundColor: 'var(--light)',
+  },
+  information: {
+    extend: type,
+    backgroundColor: 'var(--info)',
   },
   error: {
     extend: type,
@@ -94,7 +121,9 @@ export const ValidationResultItem = ({ resultItem }) => {
 
   const descriptionMarkup = useMemo(
     () => ({
-      __html: DOMPurify.sanitize(marked(autoLinkRFC(resultItem?.description ?? '')), { USE_PROFILES: { html: true } }),
+      __html: DOMPurify.sanitize(marked.parse(autoLinkRFC(resultItem?.description ?? '')), {
+        USE_PROFILES: { html: true },
+      }),
     }),
     [resultItem]
   );
@@ -115,6 +144,8 @@ export const ValidationResultItem = ({ resultItem }) => {
             className={cx({
               [classes.error]: getValidationResultType(resultItem.severity) === ERROR,
               [classes.warning]: getValidationResultType(resultItem.severity) === WARNING,
+              [classes.information]: getValidationResultType(resultItem.severity) === INFO,
+              [classes.hint]: getValidationResultType(resultItem.severity) === HINT,
             })}
           ></div>
         </div>
@@ -122,7 +153,7 @@ export const ValidationResultItem = ({ resultItem }) => {
         <div className={classes.resultMessage}>{resultItem.message}</div>
       </div>
 
-      <Modal fade={false} isOpen={isModalOpen} role="dialog" centered toggle={closeModal}>
+      <Modal fade={false} isOpen={isModalOpen} role="dialog" centered toggle={closeModal} className={'modal-xl'}>
         <ModalHeader charCode={215} closeAriaLabel="Close" tag="h5" wrapTag="div" toggle={closeModal}>
           {resultItem.code}
         </ModalHeader>
@@ -132,10 +163,11 @@ export const ValidationResultItem = ({ resultItem }) => {
         <ModalFooter tag="div">
           <Button
             className="white-bg"
-            color="custom-white"
+            color="primary"
             icon={false}
             onClick={handleOnAskSlackButtonClick}
             tag="button"
+            outline
           >
             Ask Slack
           </Button>
